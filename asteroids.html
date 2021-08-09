@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Asteroids</title>
+	<canvas id = "asteroidcanvas" width = "1430" height = "670"></canvas>
+</head>
+<body>
+	<script>
+			//✓ we need a function that draws the ship. we should make the ship a triangle
+
+			//✓ we should do the same thing that we did with the stars and make a bunch of asteroids with random sizes
+
+			//✓ asteroids spawn in the edges of the canvas
+
+			//✓ asteroids move in slow speed 
+
+			//✓2. we need controls for the ship; wasd or arrow keys
+
+			//✓1. click to shoot 
+
+			//✓space to activate force field (only avalible every minute, lasts for 30 seconds)
+
+			//wormax map where everything moves torwards character
+
+			//different kinds of asteroids with different health
+
+			//if you beat the red asteroid with attack robots (god asteroid spawns every 10 minutes) you beat the game
+
+			//special asteroid breaks in half when shot at
+
+			//animated starfield background
+
+			//every 5 kills, can become transparent
+
+			const canvas = document.getElementById("asteroidcanvas")
+			const ctx = canvas.getContext("2d")
+
+			asteroids=[]
+			starship=[[10*3, 10*3], [0*3, -15*3], [-10*3, 10*3]]
+			player={x:668, y:346, rotation: 0, health: 5, 
+				forcefield_on: false, forcefield_available: true}
+			var wpressed = false
+			var spressed = false
+			var apressed = false
+			var dpressed = false
+			bullets=[]
+			var timer = 0
+			var forcefield_timer = 0
+			var player_speed = 4.5
+			var bullet_speed = 3.5
+			stars=[]
+
+		//loop that specifies the properies of the star and adds the stars to an array
+			for (let i = 0; i < 80; i++) {
+
+				var star = {width:4, height:4, color:"white", x:Math.random()*(canvas.width-105)+5, y:Math.random()*(canvas.height-5)+5, yspeed: Math.random()*3}
+
+				stars.push(makeStar(4,4,Math.random()*(canvas.width-105)+5,Math.random()*(canvas.height-5)+5, Math.random()*3))
+			
+			}
+
+		//console.log(stars)
+		//this function specifies the width,height,x,y of the star
+		function makeStar(width, height,x,y, yspeed){
+			return{width,height,x,y, yspeed}
+
+		}
+		//this function specifies the color of the canvas and the stars and draws the stars
+		function drawStars(){
+			//changes pen color to black
+			//ctx.fillStyle="black"
+			//this line fills the canvas with the black color
+			//ctx.fillRect(0,0,canvas.width,canvas.height)
+			//these lines draw the stars and their color in a for each loop
+			stars.forEach((star)=> {
+				ctx.fillStyle="white"
+				ctx.fillRect(star.x,star.y,star.width,star.height)
+			});
+		}
+
+		function moveStars(){
+			stars.forEach((star)=>{
+				star.y += star.yspeed
+				if(star.y > canvas.height){
+				   star.y = 0
+				   star.x = Math.random()*(canvas.width-205)+5
+				}
+
+			});
+				
+		}
+
+
+
+		
+		for (let i = 0; i < 3; i++) {
+			asteroids.push(makeAsteroid(50,Math.random()*1395+5,Math.random()*695+5, Math.random()*2, Math.random()*2, 3))
+			
+		}
+
+
+		function makeBullet(radius, x, y, xspeed, yspeed){
+			return{radius,x,y,xspeed,yspeed}
+		}
+
+		function drawstarship(starship){
+			ctx.fillStyle = "#e0e0e0"
+			ctx.beginPath()
+			ctx.moveTo(starship[0][0]+player.x,starship[0][1]+player.y)
+			ctx.lineTo(starship[1][0]+player.x,starship[1][1]+player.y)
+			ctx.lineTo(starship[2][0]+player.x,starship[2][1]+player.y)
+			ctx.lineTo(starship[0][0]+player.x,starship[0][1]+player.y)
+			ctx.fill()
+			ctx.closePath()
+
+		}
+	
+		document.addEventListener("click", function(e){
+			//console.log(e.clientX, e.clientY)
+			var xdif = e.clientX-player.x
+			var ydif = e.clientY-player.y
+			xspeed = xdif/(Math.abs(xdif)+Math.abs(ydif))
+			yspeed = ydif/(Math.abs(xdif)+Math.abs(ydif))
+			xspeed*=bullet_speed
+			yspeed*=bullet_speed
+			//console.log(xspeed)
+			//console.log(yspeed)
+			/*if(e.clientX-player.x>0){
+				xspeed = 1
+			}
+			else{
+				xspeed = -1
+			}
+			if(e.clientY-player.y>0){
+				yspeed = 1
+			}
+			else{
+				yspeed = -1
+			}*/
+			bullets.push(makeBullet(10,player.x,player.y,xspeed,yspeed));
+
+		})
+
+		document.addEventListener("keydown", function(e){
+			//console.log(e.keyCode)
+
+
+
+			if(e.keyCode == 87){
+				//console.log("w key pressed")
+				//player.y-=5
+				wpressed = true
+			}
+
+			if(e.keyCode == 83){
+				//console.log("s key pressed")
+				//player.y+=5
+				spressed = true
+			}
+
+			if (e.keyCode == 65){
+				//player.x-=5
+				apressed = true
+			}
+			if(e.keyCode == 68){
+				//console.log("d key pressed")
+				//player.x+=5
+				dpressed = true
+			}
+			if(e.keyCode == 32){
+				if(player.forcefield_available){
+					console.log("force field on")
+					player.forcefield_on = true
+					player.forcefield_available = false
+					forcefield_timer = 0
+				}
+
+			}
+
+		})
+
+		document.addEventListener("keyup", function(e){
+			if(e.keyCode == 87){
+				wpressed = false
+			}	
+			if(e.keyCode == 83){
+				spressed = false
+			}
+			if(e.keyCode == 65){
+				apressed = false
+			}	
+			if(e.keyCode == 68){
+				dpressed = false
+			}
+		})
+
+		function makeAsteroid(radius,x,y, yspeed, xspeed, health){
+			return{radius,x,y, yspeed, xspeed, health}
+
+		}
+
+		function drawAsteroids(){
+			asteroids.forEach((asteroid)=> {
+				ctx.fillStyle = "#d92e2e"
+				ctx.beginPath();
+				ctx.arc(asteroid.x, asteroid.y, asteroid.radius, 0, Math.PI*2)
+				ctx.fill()
+				ctx.closePath();
+			});
+
+		}
+
+
+
+		function drawBullet(){
+			bullets.forEach((bullet)=>{
+				ctx.fillStyle = "#7d745f"
+				ctx.beginPath();
+				ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI*2)
+				ctx.fill()
+				ctx.closePath();
+			});
+		}
+		function moveBullet(){
+			bullets.forEach((bullet)=>{
+				bullet.x += bullet.xspeed
+				bullet.y += bullet.yspeed
+				if(bullet.x<0||bullet.x>canvas.x||bullet.y<0||bullet.y>canvas.y){
+					let index = bullets.indexOf(bullet)
+					bullets.splice(index,1)
+					//console.log("bullet died!")
+				}
+			})
+
+		}
+		function makenewAsteroid(){
+			asteroids.push(makeAsteroid(50,Math.random()*1395+5,Math.random()*695+5, Math.random()*2, Math.random()*2, 3))
+
+		}
+
+		function checkABCollisions(asteroids, bullets){
+			asteroids.forEach((asteroid)=>{
+				bullets.forEach((bullet)=>{
+					if(Math.abs(asteroid.x-bullet.x) < (asteroid.radius+bullet.radius) && Math.abs(asteroid.y-bullet.y) < (asteroid.radius+bullet.radius)){
+						asteroid.health-=1
+						//console.log("asteroid hit!")
+						if(asteroid.health < 1){
+							//console.log("asteroid died")
+							let index = asteroids.indexOf(asteroid)
+							asteroids.splice(index, 1);
+						}
+						bullet.xspeed*=-1
+						bullet.yspeed*=-1
+						bullet.x += bullet.xspeed
+						bullet.y += bullet.yspeed
+					}
+				})
+				
+			})
+
+
+
+		}
+
+		function checkASCollisions(asteroids, starship){
+			asteroids.forEach((asteroid)=>{
+				starship.forEach((point)=>{
+					if(Math.abs(asteroid.x - (point[0]+player.x)) < (asteroid.radius) && Math.abs(asteroid.y - (point[1]+player.y)) < (asteroid.radius)){
+						console.log("AAAHHH I'VE BEEN HIT")
+						if(player.forcefield_on==false){
+							player.health-=1
+						}
+						console.log(player.health)
+						let index = asteroids.indexOf(asteroid)
+						asteroids.splice(index, 1);
+					}
+					if(player.health <= 0){
+						window.location.href = "gameover.html"
+				}
+
+				})
+				
+			})
+
+		}
+
+		function addTimer(){
+			timer+=1
+			forcefield_timer+=1
+
+			if(forcefield_timer==30){
+				player.forcefield_on = false
+			}
+
+			if(forcefield_timer==60){
+				player.forcefield_available = true
+			}
+
+		}
+		
+		
+
+		/*function rotateX(originalX, originalY, angle){
+			let newX = (originalX * Math.cos(angle) + originalY * Math.sin(angle));
+			if (newX < 0.0001 && newX > -0.0001){
+				newX = x;
+			}
+			return newX
+		}
+		function rotateY(originalX, originalY, angle){
+			let newY = (-originalX * Math.sin(angle) + originalY * Math.cos(angle));
+			if (newY < 0.0001 && newY > -0.0001){
+				newY = x;
+			}
+			return newY
+		}*/
+
+		//let temp = starship[0]
+		//starship[0][0] = rotateX(temp[0], temp[1], Math.PI);
+		//starship[0][1] = rotateY(temp[0], temp[1], Math.PI);		
+
+		function moveAsteroids(){
+			asteroids.forEach((asteroid)=>{
+				asteroid.x+=asteroid.xspeed
+				asteroid.y+=asteroid.yspeed
+				if(asteroid.x>canvas.width||asteroid.y>canvas.height||asteroid.x<0||asteroid.y<0){
+					//asteroids spawn in the edges and move torwards the center
+					var wallchoice = Math.ceil(Math.random()*4)
+					//left wall
+					if(wallchoice == 1){
+						asteroid.x = 0
+						asteroid.y = Math.ceil(Math.random()*canvas.height)
+						asteroid.xspeed = Math.ceil(Math.random()*3)
+					}
+					//right wall
+					else if(wallchoice == 2){
+						asteroid.x = canvas.width
+						asteroid.y = Math.ceil(Math.random()*canvas.height)
+						asteroid.xspeed = -Math.ceil(Math.random()*3)
+					}
+					//top wall
+					else if(wallchoice == 3){
+						asteroid.x = Math.ceil(Math.random()*canvas.width)
+						asteroid.y = 0
+						asteroid.yspeed = Math.ceil(Math.random()*3)
+					}
+
+					//bottom wall
+					else if(wallchoice == 4){
+						asteroid.x = Math.ceil(Math.random()*canvas.width)
+						asteroid.y = canvas.height
+						asteroid.yspeed = -Math.ceil(Math.random()*3)
+					}
+
+				}
+
+			})
+
+		}
+
+		function drawForcefield(){
+				ctx.fillStyle="#7ae0f5"
+				ctx.beginPath()
+				ctx.arc(player.x, player.y, 85, 0, Math.PI*2)
+				ctx.fill()
+				ctx.closePath();
+
+		}
+
+		function update(){
+			ctx.fillStyle="black"
+			//this line fills the canvas with the black color
+			ctx.clearRect(0,0,canvas.width,canvas.height);
+			ctx.fillRect(0,0,canvas.width,canvas.height)
+			drawAsteroids();
+			moveAsteroids();
+			if(wpressed == true){
+				//player.y-=5
+				asteroids.forEach((asteroid)=>{
+					asteroid.y+=player_speed
+
+				})
+				bullets.forEach((bullet)=>{
+					bullet.y+=player_speed
+				})
+				stars.forEach((star)=>{
+					star.y+=player_speed
+				})
+			}
+			else if(spressed == true){
+				//player.y+=5
+				asteroids.forEach((asteroid)=>{
+					asteroid.y-=player_speed
+
+				})
+				bullets.forEach((bullet)=>{
+					bullet.y-=player_speed
+				})
+				stars.forEach((star)=>{
+					star.y-=player_speed
+				})
+				
+			}
+			else if(apressed == true){
+				//player.x-=5
+				asteroids.forEach((asteroid)=>{
+					asteroid.x+=player_speed
+
+				})
+				bullets.forEach((bullet)=>{
+					bullet.x+=player_speed
+				})
+				stars.forEach((star)=>{
+					star.x+=player_speed
+				})
+				
+			}
+			else if(dpressed == true){
+				//player.x+=5
+				asteroids.forEach((asteroid)=>{
+					asteroid.x-=player_speed
+
+				})
+				bullets.forEach((bullet)=>{
+					bullet.x-=player_speed
+				})
+				stars.forEach((star)=>{
+					star.x-=player_speed
+				})
+
+			}
+
+			if(player.forcefield_on){
+				drawForcefield()	
+			}
+			drawstarship(starship);
+			drawBullet();
+			moveBullet();
+			checkABCollisions(asteroids,bullets);
+			checkASCollisions(asteroids, starship);
+			drawStars();
+			moveStars();
+
+		}
+
+
+		setInterval(update,10);
+		setInterval(makenewAsteroid,3000)
+		setInterval(addTimer,1000)
+
+		
+
+
+	</script>
+
+</body>
+</html>
