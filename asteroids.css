@@ -1,0 +1,16 @@
+#time{
+	color:white;
+	position:absolute;
+	left:15px;
+	top:35px;
+	font-size:25px;
+	user-select: none;
+}
+#score{
+	color:white;
+	position:absolute;
+	left:15px;
+	top:1px;
+	font-size:25px;
+	user-select: none;
+}
